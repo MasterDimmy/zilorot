@@ -334,6 +334,7 @@ func (l *Logger) oldLogFiles() ([]logInfo, error) {
 		if f.IsDir() {
 			continue
 		}
+
 		name := l.timeFromName(f.Name(), prefix, ext)
 		if name == "" {
 			continue
@@ -384,7 +385,7 @@ func (l *Logger) dir() string {
 // filename.
 func (l *Logger) prefixAndExt() (prefix, ext string) {
 	filename := filepath.Base(l.filename())
-	ext = filepath.Ext(filename)
+	ext = ".zip" //filepath.Ext(filename)
 	prefix = filename[:len(filename)-len(ext)] + "-"
 	return prefix, ext
 }
