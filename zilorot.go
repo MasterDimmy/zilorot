@@ -190,12 +190,18 @@ func (l *Logger) openNew() error {
 		mode = info.Mode()
 		// move the existing file
 		newname := backupName(name, l.LocalTime)
-		if err := os.Rename(name, newname); err != nil {
-			return fmt.Errorf("can't rename log file: %s", err)
-		}
 
 		// this is a no-op anywhere but linux
 		if err := chown(name, info); err != nil {
+			return err
+		}
+
+		err = zipit(name, newname)
+		if err != nil {
+			return err
+		}
+		err = os.Remove(name)
+		if err != nil {
 			return err
 		}
 	}
@@ -218,7 +224,7 @@ func (l *Logger) openNew() error {
 func backupName(name string, local bool) string {
 	dir := filepath.Dir(name)
 	filename := filepath.Base(name)
-	ext := filepath.Ext(filename)
+	ext := ".zip" // filepath.Ext(filename)
 	prefix := filename[:len(filename)-len(ext)]
 	t := currentTime()
 	if !local {
@@ -262,7 +268,7 @@ func (l *Logger) filename() string {
 	if l.Filename != "" {
 		return l.Filename
 	}
-	name := filepath.Base(os.Args[0]) + "-zlt.log"
+	name := filepath.Base(os.Args[0]) + "-zlt.zip"
 	return filepath.Join(os.TempDir(), name)
 }
 
