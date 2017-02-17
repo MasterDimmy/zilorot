@@ -6,15 +6,15 @@ Based on https://github.com/natefinch/lumberjack , but added ability to store da
 
 Usage example:
 
-import (
-	"fmt"
-	"github.com/MasterDimmy/zilorot"
-)
+	import (
+		"fmt"
+		"github.com/MasterDimmy/zilorot"
+	)
 
-//NewLogger return log.Logger with rotating, size limitation, time-based rotation and storing data in zip-format for backups.
-//func NewLogger(name string, log_max_size_in_mb int, max_backups int, max_age_in_days int) *log.Logger
+	//NewLogger return log.Logger with rotating, size limitation, time-based rotation and storing data in zip-format for backups.
+	//func NewLogger(name string, log_max_size_in_mb int, max_backups int, max_age_in_days int) *log.Logger
 
-func main() {
+	func main() {
 	logger := zilorot.NewLogger("test.log", 1, 3, 1)
 
 	fn := func() {
@@ -25,5 +25,5 @@ func main() {
 	go fn()
 	go fn()
 	fn()
-}
+	}
 
