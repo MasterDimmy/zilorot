@@ -8,7 +8,10 @@ import (
 	"strings"
 )
 
-func zipit(source, target string) error {
+//creates Traget file as ZIPed source
+//simple way create .zip files
+//just Zipit("text.txt", "text.zip") will produce text.zip
+func Zipit(source, target string) error {
 	zipfile, err := os.Create(target)
 	if err != nil {
 		return err

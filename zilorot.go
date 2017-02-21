@@ -196,7 +196,7 @@ func (l *Logger) openNew() error {
 			return err
 		}
 
-		err = zipit(name, newname)
+		err = Zipit(name, newname)
 		if err != nil {
 			return err
 		}
