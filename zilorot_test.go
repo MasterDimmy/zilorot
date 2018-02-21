@@ -9,7 +9,7 @@ import (
 
 func TestLog(t *testing.T) {
 	os.Mkdir("logs", 0777)
-	logger := NewLogger("./logs/3proxy_status.log", 5, 10, 10)
+	logger := NewLogger("./logs/3proxy_status.log", 2, 2, 2)
 
 	//logger := NewLogger("test.log", 5, 10, 10)
 

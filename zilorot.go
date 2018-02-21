@@ -85,7 +85,9 @@ type Logger struct {
 
 	size int64
 	file *os.File
-	mu   sync.Mutex
+
+	write_idx int
+	mu        sync.Mutex
 }
 
 var (
@@ -108,6 +110,13 @@ var (
 func (l *Logger) Write(p []byte) (n int, err error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
+
+	l.write_idx++
+	if l.write_idx == 1 { //first clean up on second write
+		l.cleanup()
+	} else if l.write_idx > 10 { //every 10 write do cleanup..
+		l.write_idx = 0
+	}
 
 	writeLen := int64(len(p))
 	if writeLen > l.max() {
