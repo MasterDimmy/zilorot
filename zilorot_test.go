@@ -8,11 +8,14 @@ import (
 )
 
 func TestLog(t *testing.T) {
-	logger := NewLogger("test.log", 1, 3, 1)
+	os.Mkdir("logs", 0777)
+	logger := NewLogger("./logs/3proxy_status.log", 5, 10, 10)
+
+	//logger := NewLogger("test.log", 5, 10, 10)
 
 	fn := func() {
-		for i := 0; i < 100000; i++ {
-			logger.Printf("Some data")
+		for i := 0; i < 1000000; i++ {
+			logger.Printf("Some data sdfjh jhsdfk hskdfj hskdhf kshdfkshd kjh")
 		}
 	}
 	go fn()
