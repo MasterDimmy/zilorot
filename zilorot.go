@@ -15,8 +15,10 @@ import (
 )
 
 const (
-	backupTimeFormat = "2006-01-02T15-04-05.000"
-	defaultMaxSize   = 100
+	backupTimeFormat  = "2006-01-02T15-04-05.000"
+	defaultMaxSize    = 10
+	defaultMaxAge     = 10
+	defaultMaxBackups = 10
 )
 
 // ensure we always implement io.WriteCloser
@@ -275,8 +277,12 @@ func (l *Logger) filename() string {
 // cleanup deletes old log files, keeping at most l.MaxBackups files, as long as
 // none of them are older than MaxAge.
 func (l *Logger) cleanup() error {
-	if l.MaxBackups == 0 && l.MaxAge == 0 {
-		return nil
+	if l.MaxBackups == 0 {
+		l.MaxBackups = defaultMaxBackups
+	}
+
+	if l.MaxAge == 0 {
+		l.MaxAge = defaultMaxAge
 	}
 
 	files, err := l.oldLogFiles()
