@@ -202,19 +202,21 @@ func (l *Logger) openNew() error {
 		// move the existing file
 		newname := backupName(name, l.LocalTime)
 
+		err = Zipit(name, newname)
+		if err != nil {
+			return err
+		}
+
+		//err = os.Remove(name)
+		//if err != nil {
+		//	return err
+		//}
+
 		// this is a no-op anywhere but linux
 		if err := chown(name, info); err != nil {
 			return err
 		}
 
-		err = Zipit(name, newname)
-		if err != nil {
-			return err
-		}
-		err = os.Remove(name)
-		if err != nil {
-			return err
-		}
 	}
 
 	// we use truncate here because this should only get called when we've moved
