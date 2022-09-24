@@ -114,7 +114,7 @@ func (l *Logger) Write(p []byte) (n int, err error) {
 	l.write_idx++
 	if l.write_idx == 1 { //first clean up on second write
 		l.cleanup()
-	} else if l.write_idx > 10 { //every 10 write do cleanup..
+	} else if l.write_idx > 100 { //every 100 write do cleanup..
 		l.write_idx = 0
 	}
 
