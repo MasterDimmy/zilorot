@@ -1,4 +1,4 @@
-module zilorot
+module github.com/MasterDimmy/zilorot
 
 go 1.19
 
