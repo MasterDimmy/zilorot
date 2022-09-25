@@ -11,7 +11,10 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
+
+	"github.com/MasterDimmy/fastime"
 )
 
 const (
@@ -62,6 +65,8 @@ type Logger struct {
 	// os.TempDir() if empty.
 	Filename string `json:"filename" yaml:"filename"`
 
+	filedir string //where file is stored
+
 	// MaxSize is the maximum size in megabytes of the log file before it gets
 	// rotated. It defaults to 100 megabytes.
 	MaxSize int `json:"maxsize" yaml:"maxsize"`
@@ -86,8 +91,9 @@ type Logger struct {
 	size int64
 	file *os.File
 
-	write_idx int
-	mu        sync.Mutex
+	perform_delete int32
+	write_idx      int
+	mu             sync.Mutex
 }
 
 var (
@@ -113,7 +119,7 @@ func (l *Logger) Write(p []byte) (n int, err error) {
 
 	l.write_idx++
 	if l.write_idx == 1 { //first clean up on second write
-		l.cleanup()
+		l.cleanup(false)
 	} else if l.write_idx > 100 { //every 100 write do cleanup..
 		l.write_idx = 0
 	}
@@ -182,7 +188,7 @@ func (l *Logger) rotate() error {
 	if err := l.openNew(); err != nil {
 		return err
 	}
-	return l.cleanup()
+	return l.cleanup(true)
 }
 
 // openNew opens a new log file for writing, moving any old log file out of the
@@ -285,9 +291,28 @@ func (l *Logger) filename() string {
 	return filepath.Join(os.TempDir(), name)
 }
 
+//defer this! TO BE ensured log directory is cleaned as set in Logger config!
+func (l *Logger) ForceCleanup() {
+	l.cleanup(true)
+}
+
+var fasttime_instance = fastime.New()
+var last_cleanup_per_directory sync.Map
+
 // cleanup deletes old log files, keeping at most l.MaxBackups files, as long as
 // none of them are older than MaxAge.
-func (l *Logger) cleanup() error {
+func (l *Logger) cleanup(force bool) error {
+	if !force {
+		now := fasttime_instance.Now()
+		stored, _ := last_cleanup_per_directory.LoadOrStore(l.filedir, time.Time{})
+
+		//down do often cleanups!
+		if now.Before(stored.(time.Time)) {
+			return nil
+		}
+		last_cleanup_per_directory.Store(l.filedir, now.Add(2*time.Second))
+	}
+
 	if l.MaxBackups == 0 {
 		l.MaxBackups = defaultMaxBackups
 	}
@@ -323,12 +348,15 @@ func (l *Logger) cleanup() error {
 		return nil
 	}
 
-	go deleteAll(l.dir(), deletes)
+	atomic.AddInt32(&l.perform_delete, 1)
+	go deleteAll(&l.perform_delete, l.dir(), deletes)
 
 	return nil
 }
 
-func deleteAll(dir string, files []logInfo) {
+func deleteAll(pd *int32, dir string, files []logInfo) {
+	defer atomic.AddInt32(pd, -1)
+
 	// remove files on a separate goroutine
 	for _, f := range files {
 		// what am I going to do, log this?
